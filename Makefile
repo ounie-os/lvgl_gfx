@@ -16,16 +16,16 @@ LVGL_DIR_NAME ?= lvgl
 #-Wno-unused-value -Wno-unused-parameter 
 OPTIMIZATION ?= -O3 -mfpu=neon #-g -fno-omit-frame-pointer 
 
-ALKAID_PROJ := ../project
+ALKAID_PROJ := /mnt/disk5/ssd202/TAKOYAKI_DLS00V055/project-TAKOYAKI_DLS00V055
 
 include $(ALKAID_PROJ)/configs/current.configs
 
 CFLAGS ?= -I$(LVGL_DIR)/ $(DEFINES) $(WARNINGS) $(OPTIMIZATION)
 CFLAGS += -I$(LVGL_DIR)/$(LVGL_DIR_NAME)
 CFLAGS += -I$(LVGL_DIR)/lv_drivers/indev/
-CFLAGS += -I$(LVGL_DIR)/lvgl/demos/
+#CFLAGS += -I$(LVGL_DIR)/lvgl/demos/
 CFLAGS += -I$(LVGL_DIR)/lv_porting_sstar/
-CFLAGS += -I$(LVGL_DIR)/squareline_proj
+#CFLAGS += -I$(LVGL_DIR)/squareline_proj
 
 CFLAGS += -I$(PROJ_ROOT)/release/include/
 
@@ -44,14 +44,14 @@ endif
 LDFLAGS += -lpthread
 LDFLAGS += -lcam_os_wrapper -lcam_fs_wrapper -lmi_sys -lmi_common -lmi_panel -lmi_disp -lmi_gfx -lm 
 
-BIN ?= demo
+BIN ?= disp_init_lv
 
 #Collect the files to compile
 
 include lvgl/lvgl.mk
 include lv_drivers/lv_drivers.mk
 include lv_porting_sstar/lv_porting_sstar.mk
-include squareline_proj/squareline_proj.mk
+#include squareline_proj/squareline_proj.mk
 
 CSRCS += main.c
 

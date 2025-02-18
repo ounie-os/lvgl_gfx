@@ -231,11 +231,18 @@ void evdev_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
       data->point.x = 0;
     if(data->point.y < 0)
       data->point.y = 0;
+#ifdef SSTAR_GFX_ROTATE
 #if (SSTAR_GFX_ROTATE_ANGLE == 1) || (SSTAR_GFX_ROTATE_ANGLE == 3)
     if(data->point.x >= drv->disp->driver->ver_res)
       data->point.x = drv->disp->driver->ver_res - 1;
     if(data->point.y >= drv->disp->driver->hor_res)
       data->point.y = drv->disp->driver->hor_res - 1;
+#else
+    if(data->point.x >= drv->disp->driver->hor_res)
+      data->point.x = drv->disp->driver->hor_res - 1;
+    if(data->point.y >= drv->disp->driver->ver_res)
+      data->point.y = drv->disp->driver->ver_res - 1;
+#endif
 #else
     if(data->point.x >= drv->disp->driver->hor_res)
       data->point.x = drv->disp->driver->hor_res - 1;

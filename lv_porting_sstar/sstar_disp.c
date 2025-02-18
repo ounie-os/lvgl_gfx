@@ -13,7 +13,7 @@
 #include "sstar_disp.h"
 
 #ifdef CHIP_i2m
-#include "SAT070CP50_TTL_1024x600.h"
+#include "BOE_JD9365DA_10_MIPI.h"
 #endif
 
 #ifndef SSTAR_DISP_DEV
@@ -25,11 +25,11 @@
 #endif
 
 #ifndef SSTAR_DISP_WIDTH
-#define SSTAR_DISP_WIDTH (1024)
+#define SSTAR_DISP_WIDTH (800)
 #endif
 
 #ifndef SSTAR_DISP_HEIGHT
-#define SSTAR_DISP_HEIGHT (600)
+#define SSTAR_DISP_HEIGHT (1280)
 #endif
 
 #define MAKE_YUYV_VALUE(y,u,v)  ((y) << 24) | ((u) << 16) | ((y) << 8) | (v)

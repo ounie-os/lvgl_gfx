@@ -11,18 +11,23 @@
 #include "lv_label.h"
 #include "lv_disp.h"
 #include "lv_style.h"
+#if 0
 #include "lv_demos.h"
+#endif /* 0 */
 #include <sys/time.h>
 
+#if 0
 #include "widgets/lv_demo_widgets.h"
 #include "music/lv_demo_music.h"
 #include "benchmark/lv_demo_benchmark.h"
+#endif /* 0 */
 //#include "ui.h"
 
 
 #define PATH_IMAGE	"/customer/"
 
 
+#if 0
 void *tick_thread(void * data)
 {
     (void)data;
@@ -47,6 +52,7 @@ unsigned int _GetTime0()
     }
     return ms;
 }
+#endif /* 0 */
 int main(int argc, char *argv[])
 {
 	char test_path[1024] = { 0 };
@@ -56,6 +62,10 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+    while(1) {
+		sleep(60);
+	}
+#if 0
     if (0 == strcmp(argv[1], "a")) {
         lv_demo_music();
     } else if (0 == strcmp(argv[1], "b")) {
@@ -76,7 +86,9 @@ int main(int argc, char *argv[])
 		
         //ui_init();
     }
+#endif /* 0 */
 
+#if 0
     pthread_create(&pt, NULL, tick_thread, NULL);
     while(1) {
         unsigned int curr = _GetTime0();
@@ -87,6 +99,7 @@ int main(int argc, char *argv[])
         }
     }
     pthread_join(pt, NULL);
+#endif /* 0 */
 
     sstar_lv_deinit();
     return 0;
