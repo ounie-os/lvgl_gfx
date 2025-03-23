@@ -6,11 +6,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
-#include "lv_obj.h"
 #include "sstar_port.h"
+#if 0
+#include "lv_obj.h"
 #include "lv_label.h"
 #include "lv_disp.h"
 #include "lv_style.h"
+#endif /* 0 */
 #if 0
 #include "lv_demos.h"
 #endif /* 0 */
@@ -23,11 +25,14 @@
 #endif /* 0 */
 //#include "ui.h"
 
+#include "gui_guider.h"
+#include "custom.h"
+
+
 
 #define PATH_IMAGE	"/customer/"
 
 
-#if 0
 void *tick_thread(void * data)
 {
     (void)data;
@@ -52,19 +57,24 @@ unsigned int _GetTime0()
     }
     return ms;
 }
-#endif /* 0 */
+
+lv_ui guider_ui;
+
+
 int main(int argc, char *argv[])
 {
 	char test_path[1024] = { 0 };
     pthread_t pt;
+    g_lv_ui_context.ui = &guider_ui;
     if (0 != sstar_lv_init()) {
         printf("ERR: sstar_lv_init failed.\n");
         return -1;
     }
 
-    while(1) {
-		sleep(60);
-	}
+    setup_ui(g_lv_ui_context.ui);
+    custom_init(g_lv_ui_context.ui);
+    
+
 #if 0
     if (0 == strcmp(argv[1], "a")) {
         lv_demo_music();
@@ -88,7 +98,7 @@ int main(int argc, char *argv[])
     }
 #endif /* 0 */
 
-#if 0
+
     pthread_create(&pt, NULL, tick_thread, NULL);
     while(1) {
         unsigned int curr = _GetTime0();
@@ -99,7 +109,7 @@ int main(int argc, char *argv[])
         }
     }
     pthread_join(pt, NULL);
-#endif /* 0 */
+
 
     sstar_lv_deinit();
     return 0;

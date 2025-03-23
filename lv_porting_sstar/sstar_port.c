@@ -20,7 +20,6 @@
 #include "sstar_gfx.h"
 #include "sstar_port.h"
 
-#if 0
 void sstar_draw_ctx_init_cb(struct _lv_disp_drv_t * disp_drv, lv_draw_ctx_t * draw_ctx)
 {
     lv_draw_sw_ctx_t * draw_sw_ctx = (lv_draw_sw_ctx_t *) draw_ctx;
@@ -80,13 +79,13 @@ void sstar_flush_cb(struct _lv_disp_drv_t * disp_drv, const lv_area_t * area, lv
     sstar_gfx_wait();
     lv_disp_flush_ready(disp_drv);
 }
-#endif /* 0 */
+
 
 void sstar_wait_cb(struct _lv_disp_drv_t * disp_drv)
 {
     sstar_gfx_wait();
 }
-#if 0
+
 static void lvgl_disp_drv_init()
 {
     static lv_disp_drv_t disp_drv = {0};
@@ -146,24 +145,20 @@ static void lvgl_disp_drv_init()
 
     lv_indev_drv_register(&input_drv);
 }
-#endif /* 0 */
 
-#if 0
+
 static void lvgl_disp_drv_deinit(void)
 {
 }
-#endif /* 0 */
 
 int sstar_lv_init(void)
 {
     if (0 != sstar_sys_init()) {
         goto ERR_SYS_INIT;
     }
-#if 0
     if (0 != sstar_fbdev_init()) {
         goto ERR_FBDEV_INIT;
     }
-#endif /* 0 */
     if (0 != sstar_disp_init(0, "ttl", 1024, 600)) {
         goto ERR_DISP_INIT;
     }
@@ -171,11 +166,9 @@ int sstar_lv_init(void)
         goto ERR_GFX_INIT;
     }
 
-#if 0
     lv_init();
     evdev_init();
     lvgl_disp_drv_init();
-#endif /* 0 */
     return 0;
 ERR_GFX_INIT:
     sstar_disp_deinit(0, "ttl");
@@ -189,9 +182,7 @@ ERR_SYS_INIT:
 
 void sstar_lv_deinit(void)
 {
-#if 0
     lvgl_disp_drv_deinit();
-#endif /* 0 */
 
     sstar_gfx_deinit();
     sstar_fbdev_deinit();
