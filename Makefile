@@ -44,7 +44,7 @@ endif
 LDFLAGS += -lpthread
 LDFLAGS += -lcam_os_wrapper -lcam_fs_wrapper -lmi_sys -lmi_common -lmi_panel -lmi_disp -lmi_gfx -lm 
 
-BIN ?= disp_init_lv
+BIN ?= lv_app
 
 #Collect the files to compile
 
@@ -52,6 +52,7 @@ include lvgl/lvgl.mk
 include lv_drivers/lv_drivers.mk
 include lv_porting_sstar/lv_porting_sstar.mk
 #include squareline_proj/squareline_proj.mk
+include app/app.mk
 
 CSRCS += main.c
 

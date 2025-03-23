@@ -3,6 +3,10 @@
  *
  */
 
+/**
+ * Modified by NXP in 2023
+ */
+
 #ifndef LV_FSDRV_H
 #define LV_FSDRV_H
 
@@ -29,6 +33,22 @@ extern "C" {
 
 #if LV_USE_FS_FATFS != '\0'
 void lv_fs_fatfs_init(void);
+#endif
+
+#if LV_USE_FS_RAWFS != '\0'
+#include "stdint.h"
+
+typedef uint32_t rawfs_addr_t;
+typedef uint32_t rawfs_size_t;
+
+typedef struct _rawfs_file_t {
+    rawfs_addr_t base;
+    rawfs_addr_t offset;
+    rawfs_size_t size;
+    char * name;
+} rawfs_file_t;
+
+void lv_fs_rawfs_init(void);
 #endif
 
 #if LV_USE_FS_STDIO != '\0'

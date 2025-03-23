@@ -3,6 +3,10 @@
  *
  */
 
+/**
+ * Modified by NXP in 2024
+ */
+
 #ifndef LV_ANIM_H
 #define LV_ANIM_H
 
@@ -40,6 +44,7 @@ typedef enum {
 } lv_anim_enable_t;
 
 struct _lv_anim_t;
+struct _lv_timer_t;
 
 /** Get the current value during an animation*/
 typedef int32_t (*lv_anim_path_cb_t)(const struct _lv_anim_t *);
@@ -65,12 +70,16 @@ typedef void (*lv_anim_start_cb_t)(struct _lv_anim_t *);
 /** Callback used when the animation values are relative to get the current value*/
 typedef int32_t (*lv_anim_get_value_cb_t)(struct _lv_anim_t *);
 
+/** Callback used when the animation is deleted*/
+typedef void (*lv_anim_deleted_cb_t)(struct _lv_anim_t *);
+
 /** Describes an animation*/
 typedef struct _lv_anim_t {
     void * var;                          /**<Variable to animate*/
     lv_anim_exec_xcb_t exec_cb;          /**< Function to execute to animate*/
     lv_anim_start_cb_t start_cb;         /**< Call it when the animation is starts (considering `delay`)*/
     lv_anim_ready_cb_t ready_cb;         /**< Call it when the animation is ready*/
+    lv_anim_deleted_cb_t deleted_cb;     /**< Call it when the animation is deleted*/
     lv_anim_get_value_cb_t get_value_cb; /**< Get the current value in relative mode*/
 #if LV_USE_USER_DATA
     void * user_data; /**< Custom user data*/
@@ -91,6 +100,7 @@ typedef struct _lv_anim_t {
     uint8_t playback_now : 1; /**< Play back is in progress*/
     uint8_t run_round : 1;    /**< Indicates the animation has run in this round*/
     uint8_t start_cb_called : 1;    /**< Indicates that the `start_cb` was already called*/
+    bool anim_pause;
 } lv_anim_t;
 
 /**********************
@@ -225,6 +235,16 @@ static inline void lv_anim_set_ready_cb(lv_anim_t * a, lv_anim_ready_cb_t ready_
 }
 
 /**
+ * Set a function call when the animation is deleted.
+ * @param a         pointer to an initialized `lv_anim_t` variable
+ * @param deleted_cb  a function call when the animation is deleted
+ */
+static inline void lv_anim_set_deleted_cb(lv_anim_t * a, lv_anim_deleted_cb_t deleted_cb)
+{
+    a->deleted_cb = deleted_cb;
+}
+
+/**
  * Make the animation to play back to when the forward direction is ready
  * @param a         pointer to an initialized `lv_anim_t` variable
  * @param time      the duration of the playback animation in milliseconds. 0: disable playback
@@ -333,6 +353,24 @@ static inline void * lv_anim_get_user_data(lv_anim_t * a)
 bool lv_anim_del(void * var, lv_anim_exec_xcb_t exec_cb);
 
 /**
+ * Pause an animation of a variable with a given animator function
+ * @param var       pointer to variable
+ * @param exec_cb   a function pointer which is animating 'var',
+ *                  or NULL to ignore it and delete all the animations of 'var
+ * @return          true: at least 1 animation is stoped, false: no animation is stoped
+ */
+bool lv_anim_pause(void * var, lv_anim_exec_xcb_t exec_cb);
+
+/**
+ * Resume an animation of a variable with a given animator function
+ * @param var       pointer to variable
+ * @param exec_cb   a function pointer which is animating 'var',
+ *                  or NULL to ignore it and delete all the animations of 'var
+ * @return          true: at least 1 animation is resumed, false: no animation is resumed
+ */
+bool lv_anim_resume(void * var, lv_anim_exec_xcb_t exec_cb);
+
+/**
  * Delete all the animations
  */
 void lv_anim_del_all(void);
@@ -344,6 +382,12 @@ void lv_anim_del_all(void);
  * @return          pointer to the animation.
  */
 lv_anim_t * lv_anim_get(void * var, lv_anim_exec_xcb_t exec_cb);
+
+/**
+ * Get global animation refresher timer.
+ * @return pointer to the animation refresher timer.
+ */
+struct _lv_timer_t * lv_anim_get_timer(void);
 
 /**
  * Delete an animation by getting the animated variable from `a`.

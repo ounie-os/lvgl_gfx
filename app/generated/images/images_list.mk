@@ -1,0 +1,1 @@
+GEN_CSRCS += _setting_alpha_48x45.c _camera_alpha_69x66.c _return_alpha_44x40.c

@@ -3,6 +3,10 @@
  *
  */
 
+/**
+ * Modified by NXP in 2023
+ */
+
 /*********************
  *      INCLUDES
  *********************/
@@ -97,6 +101,10 @@ typedef struct {
     lv_style_t cb_marker, cb_marker_checked;
 #endif
 
+#if LV_USE_RADIOBTN
+    lv_style_t rb_marker, rb_marker_checked, rb_marker_inner, rb_marker_inner_checked;
+#endif
+
 #if LV_USE_SWITCH
     lv_style_t switch_knob;
 #endif
@@ -109,7 +117,7 @@ typedef struct {
     lv_style_t table_cell;
 #endif
 
-#if LV_USE_METER
+#if LV_USE_METER || LV_USE_ANALOGCLOCK
     lv_style_t meter_marker, meter_indic;
 #endif
 
@@ -123,6 +131,10 @@ typedef struct {
 
 #if LV_USE_COLORWHEEL
     lv_style_t colorwheel_main;
+#endif
+
+#if LV_USE_CAROUSEL
+    lv_style_t outline_focus, outline_disabled;
 #endif
 
 #if LV_USE_MENU
@@ -218,26 +230,32 @@ static void style_init(void)
     color_card = theme.flags & MODE_DARK ? DARK_COLOR_CARD : LIGHT_COLOR_CARD;
     color_grey = theme.flags & MODE_DARK ? DARK_COLOR_GREY : LIGHT_COLOR_GREY;
 
+    style_init_reset(&styles->transition_delayed);
+    style_init_reset(&styles->transition_normal);
+#if TRANSITION_TIME
     static lv_style_transition_dsc_t trans_delayed;
     lv_style_transition_dsc_init(&trans_delayed, trans_props, lv_anim_path_linear, TRANSITION_TIME, 70, NULL);
 
     static lv_style_transition_dsc_t trans_normal;
     lv_style_transition_dsc_init(&trans_normal, trans_props, lv_anim_path_linear, TRANSITION_TIME, 0, NULL);
 
-    style_init_reset(&styles->transition_delayed);
     lv_style_set_transition(&styles->transition_delayed, &trans_delayed); /*Go back to default state with delay*/
 
-    style_init_reset(&styles->transition_normal);
     lv_style_set_transition(&styles->transition_normal, &trans_normal); /*Go back to default state with delay*/
+#endif
 
     style_init_reset(&styles->scrollbar);
-    lv_style_set_bg_color(&styles->scrollbar, (theme.flags & MODE_DARK) ? lv_palette_darken(LV_PALETTE_GREY,
-                                                                                            2) : lv_palette_main(LV_PALETTE_GREY));
+    lv_color_t sb_color = (theme.flags & MODE_DARK) ? lv_palette_darken(LV_PALETTE_GREY,
+                                                                        2) : lv_palette_main(LV_PALETTE_GREY);
+    lv_style_set_bg_color(&styles->scrollbar, sb_color);
+
     lv_style_set_radius(&styles->scrollbar, LV_RADIUS_CIRCLE);
     lv_style_set_pad_all(&styles->scrollbar, lv_disp_dpx(theme.disp, 7));
     lv_style_set_width(&styles->scrollbar,  lv_disp_dpx(theme.disp, 5));
     lv_style_set_bg_opa(&styles->scrollbar,  LV_OPA_40);
+#if TRANSITION_TIME
     lv_style_set_transition(&styles->scrollbar, &trans_normal);
+#endif
 
     style_init_reset(&styles->scrollbar_scrolled);
     lv_style_set_bg_opa(&styles->scrollbar_scrolled,  LV_OPA_COVER);
@@ -421,6 +439,30 @@ static void style_init(void)
     lv_style_set_text_font(&styles->cb_marker_checked, theme.font_small);
 #endif
 
+#if LV_USE_RADIOBTN
+    style_init_reset(&styles->rb_marker);
+    lv_style_set_pad_all(&styles->rb_marker, lv_disp_dpx(theme.disp, 3));
+    lv_style_set_border_width(&styles->rb_marker, BORDER_WIDTH);
+    lv_style_set_border_color(&styles->rb_marker, theme.color_primary);
+    lv_style_set_bg_color(&styles->rb_marker, color_card);
+    lv_style_set_bg_opa(&styles->rb_marker, LV_OPA_COVER);
+    lv_style_set_radius(&styles->rb_marker, LV_RADIUS_CIRCLE);
+
+    style_init_reset(&styles->rb_marker_checked);
+    lv_style_set_bg_color(&styles->rb_marker_checked, color_card);
+    lv_style_set_bg_opa(&styles->rb_marker_checked, LV_OPA_COVER);
+
+    style_init_reset(&styles->rb_marker_inner);
+    lv_style_set_border_opa(&styles->rb_marker_inner, LV_OPA_TRANSP);
+    lv_style_set_bg_opa(&styles->rb_marker_inner, LV_OPA_TRANSP);
+    lv_style_set_radius(&styles->rb_marker_inner, LV_RADIUS_CIRCLE);
+
+    style_init_reset(&styles->rb_marker_inner_checked);
+    lv_style_set_border_opa(&styles->rb_marker_inner_checked, LV_OPA_TRANSP);
+    lv_style_set_bg_color(&styles->rb_marker_inner_checked, theme.color_primary);
+    lv_style_set_bg_opa(&styles->rb_marker_inner_checked, LV_OPA_COVER);
+#endif
+
 #if LV_USE_SWITCH
     style_init_reset(&styles->switch_knob);
     lv_style_set_pad_all(&styles->switch_knob, - lv_disp_dpx(theme.disp, 4));
@@ -519,7 +561,7 @@ static void style_init(void)
     lv_style_set_pad_ver(&styles->menu_separator, PAD_TINY);
 #endif
 
-#if LV_USE_METER
+#if LV_USE_METER || LV_USE_ANALOGCLOCK
     style_init_reset(&styles->meter_marker);
     lv_style_set_line_width(&styles->meter_marker, lv_disp_dpx(theme.disp, 5));
     lv_style_set_line_color(&styles->meter_marker, color_text);
@@ -574,6 +616,17 @@ static void style_init(void)
 #if LV_USE_COLORWHEEL
     style_init_reset(&styles->colorwheel_main);
     lv_style_set_arc_width(&styles->colorwheel_main, lv_disp_dpx(theme.disp, 10));
+#endif
+
+#if LV_USE_CAROUSEL
+    style_init_reset(&styles->outline_focus);
+    lv_style_set_outline_color(&styles->outline_focus, lv_palette_main(LV_PALETTE_BLUE));
+    lv_style_set_outline_width(&styles->outline_focus, OUTLINE_WIDTH);
+    lv_style_set_outline_opa(&styles->outline_focus, LV_OPA_50);
+    style_init_reset(&styles->outline_disabled);
+    lv_style_set_outline_color(&styles->outline_disabled, lv_palette_main(LV_PALETTE_GREY));
+    lv_style_set_outline_width(&styles->outline_disabled, OUTLINE_WIDTH);
+    lv_style_set_outline_opa(&styles->outline_disabled, LV_OPA_50);
 #endif
 
 #if LV_USE_MSGBOX
@@ -893,6 +946,25 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
     }
 #endif
 
+#if LV_USE_RADIOBTN
+    else if(lv_obj_check_type(obj, &lv_radiobtn_item_class)) {
+        lv_obj_add_style(obj, &styles->pad_gap, 0);
+        lv_obj_add_style(obj, &styles->outline_primary, LV_STATE_FOCUS_KEY);
+        lv_obj_add_style(obj, &styles->disabled, LV_PART_INDICATOR | LV_STATE_DISABLED);
+        lv_obj_add_style(obj, &styles->rb_marker, LV_PART_INDICATOR);
+        lv_obj_add_style(obj, &styles->rb_marker_inner, LV_PART_CUSTOM_FIRST);
+        lv_obj_add_style(obj, &styles->rb_marker_checked, LV_PART_INDICATOR | LV_STATE_CHECKED);
+        lv_obj_add_style(obj, &styles->rb_marker_inner_checked, LV_PART_CUSTOM_FIRST | LV_STATE_CHECKED);
+        lv_obj_add_style(obj, &styles->pressed, LV_PART_INDICATOR | LV_STATE_PRESSED);
+        lv_obj_add_style(obj, &styles->pressed, LV_PART_CUSTOM_FIRST | LV_STATE_PRESSED);
+#if LV_THEME_DEFAULT_GROW
+        lv_obj_add_style(obj, &styles->grow, LV_PART_INDICATOR | LV_STATE_PRESSED);
+#endif
+        lv_obj_add_style(obj, &styles->transition_normal, LV_PART_INDICATOR | LV_STATE_PRESSED);
+        lv_obj_add_style(obj, &styles->transition_delayed, LV_PART_INDICATOR);
+    }
+#endif
+
 #if LV_USE_SWITCH
     else if(lv_obj_check_type(obj, &lv_switch_class)) {
         lv_obj_add_style(obj, &styles->bg_color_grey, 0);
@@ -989,10 +1061,19 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
     }
 #endif
 
+#if LV_USE_ANALOGCLOCK
+    else if(lv_obj_check_type(obj, &lv_analogclock_class)) {
+        lv_obj_add_style(obj, &styles->card, 0);
+        lv_obj_add_style(obj, &styles->circle, 0);
+        lv_obj_add_style(obj, &styles->meter_indic, LV_PART_INDICATOR);
+    }
+#endif
+
 #if LV_USE_TEXTAREA
     else if(lv_obj_check_type(obj, &lv_textarea_class)) {
         lv_obj_add_style(obj, &styles->card, 0);
         lv_obj_add_style(obj, &styles->pad_small, 0);
+        lv_obj_add_style(obj, &styles->disabled, LV_STATE_DISABLED);
         lv_obj_add_style(obj, &styles->outline_primary, LV_STATE_FOCUS_KEY);
         lv_obj_add_style(obj, &styles->outline_secondary, LV_STATE_EDITED);
         lv_obj_add_style(obj, &styles->scrollbar, LV_PART_SCROLLBAR);
@@ -1079,11 +1160,11 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
         lv_obj_add_style(obj, &styles->menu_pressed, LV_STATE_PRESSED);
         lv_obj_add_style(obj, &styles->bg_color_primary_muted, LV_STATE_PRESSED | LV_STATE_CHECKED);
         lv_obj_add_style(obj, &styles->bg_color_primary_muted, LV_STATE_CHECKED);
+        lv_obj_add_style(obj, &styles->bg_color_primary, LV_STATE_FOCUS_KEY);
     }
     else if(lv_obj_check_type(obj, &lv_menu_sidebar_header_cont_class) ||
             lv_obj_check_type(obj, &lv_menu_main_header_cont_class)) {
         lv_obj_add_style(obj, &styles->menu_header_cont, 0);
-        lv_obj_add_style(obj, &styles->menu_pressed, LV_STATE_PRESSED);
     }
     else if(lv_obj_check_type(obj, &lv_menu_page_class)) {
         lv_obj_add_style(obj, &styles->menu_page, 0);
@@ -1125,6 +1206,20 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
     else if(lv_obj_check_type(obj, &lv_tileview_tile_class)) {
         lv_obj_add_style(obj, &styles->scrollbar, LV_PART_SCROLLBAR);
         lv_obj_add_style(obj, &styles->scrollbar_scrolled, LV_PART_SCROLLBAR | LV_STATE_SCROLLED);
+    }
+#endif
+
+#if LV_USE_CAROUSEL
+    else if(lv_obj_check_type(obj, &lv_carousel_class)) {
+        lv_obj_add_style(obj, &styles->scr, 0);
+        lv_obj_add_style(obj, &styles->scrollbar, LV_PART_SCROLLBAR);
+        lv_obj_add_style(obj, &styles->scrollbar_scrolled, LV_PART_SCROLLBAR | LV_STATE_SCROLLED);
+    }
+    else if(lv_obj_check_type(obj, &lv_carousel_element_class)) {
+        lv_obj_add_style(obj, &styles->scrollbar, LV_PART_SCROLLBAR);
+        lv_obj_add_style(obj, &styles->scrollbar_scrolled, LV_PART_SCROLLBAR | LV_STATE_SCROLLED);
+        lv_obj_add_style(obj, &styles->outline_focus, LV_STATE_FOCUSED);
+        lv_obj_add_style(obj, &styles->outline_disabled, LV_STATE_DEFAULT);
     }
 #endif
 

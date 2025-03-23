@@ -3,6 +3,10 @@
  *
  */
 
+/**
+ * Modified by NXP in 2024
+ */
+
 /*********************
  *      INCLUDES
  *********************/
@@ -71,6 +75,7 @@ void lv_anim_init(lv_anim_t * a)
     a->repeat_cnt = 1;
     a->path_cb = lv_anim_path_linear;
     a->early_apply = 1;
+    a->anim_pause = false;
 }
 
 lv_anim_t * lv_anim_start(const lv_anim_t * a)
@@ -135,6 +140,45 @@ uint32_t lv_anim_get_playtime(lv_anim_t * a)
     return playtime;
 }
 
+bool lv_anim_pause(void * var, lv_anim_exec_xcb_t exec_cb)
+{
+    lv_anim_t * a;
+    lv_anim_t * a_next;
+    bool pause = false;
+    a        = _lv_ll_get_head(&LV_GC_ROOT(_lv_anim_ll));
+    while(a != NULL) {
+        a_next = _lv_ll_get_next(&LV_GC_ROOT(_lv_anim_ll), a);
+
+        if((a->var == var || var == NULL) && (a->exec_cb == exec_cb || exec_cb == NULL)) {
+            a->anim_pause = true;
+            anim_mark_list_change();
+            pause = true;
+        }
+
+        a = a_next;
+    }
+    return pause;
+}
+
+bool lv_anim_resume(void * var, lv_anim_exec_xcb_t exec_cb)
+{
+    lv_anim_t * a;
+    lv_anim_t * a_next;
+    bool resume = false;
+    a        = _lv_ll_get_head(&LV_GC_ROOT(_lv_anim_ll));
+    while(a != NULL) {
+        a_next = _lv_ll_get_next(&LV_GC_ROOT(_lv_anim_ll), a);
+
+        if((a->var == var || var == NULL) && (a->exec_cb == exec_cb || exec_cb == NULL)) {
+            a->anim_pause = false;
+            anim_mark_list_change();
+            resume = true;
+        }
+        a = a_next;
+    }
+    return resume;
+}
+
 bool lv_anim_del(void * var, lv_anim_exec_xcb_t exec_cb)
 {
     lv_anim_t * a;
@@ -147,6 +191,7 @@ bool lv_anim_del(void * var, lv_anim_exec_xcb_t exec_cb)
 
         if((a->var == var || var == NULL) && (a->exec_cb == exec_cb || exec_cb == NULL)) {
             _lv_ll_remove(&LV_GC_ROOT(_lv_anim_ll), a);
+            if(a->deleted_cb != NULL) a->deleted_cb(a);
             lv_mem_free(a);
             anim_mark_list_change(); /*Read by `anim_timer`. It need to know if a delete occurred in
                                        the linked list*/
@@ -175,6 +220,11 @@ lv_anim_t * lv_anim_get(void * var, lv_anim_exec_xcb_t exec_cb)
     }
 
     return NULL;
+}
+
+struct _lv_timer_t * lv_anim_get_timer(void)
+{
+    return _lv_anim_tmr;
 }
 
 uint16_t lv_anim_count_running(void)
@@ -359,7 +409,8 @@ static void anim_timer(lv_timer_t * param)
          */
         anim_list_changed = false;
 
-        if(a->run_round != anim_run_round) {
+        /*Add the animation pause flag check*/
+        if(a->run_round != anim_run_round && !a->anim_pause) {
             a->run_round = anim_run_round; /*The list readying might be reset so need to know which anim has run already*/
 
             /*The animation will run now for the first time. Call `start_cb`*/
@@ -429,6 +480,7 @@ static void anim_ready_handler(lv_anim_t * a)
 
         /*Call the callback function at the end*/
         if(a->ready_cb != NULL) a->ready_cb(a);
+        if(a->deleted_cb != NULL) a->deleted_cb(a);
         lv_mem_free(a);
     }
     /*If the animation is not deleted then restart it*/
