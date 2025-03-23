@@ -222,7 +222,7 @@ void evdev_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
     data->point.y = map(evdev_root_y, EVDEV_VER_MIN, EVDEV_VER_MAX, 0, drv->disp->driver->ver_res);
 #else
     data->point.x = evdev_root_x;
-    data->point.y = evdev_root_y;
+    data->point.y = drv->disp->driver->ver_res - evdev_root_y;
 #endif
 
     data->state = evdev_button;
@@ -231,6 +231,13 @@ void evdev_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
       data->point.x = 0;
     if(data->point.y < 0)
       data->point.y = 0;
+
+    if(data->point.x >= drv->disp->driver->hor_res)
+      data->point.x = drv->disp->driver->hor_res - 1;
+    if(data->point.y >= drv->disp->driver->ver_res)
+      data->point.y = drv->disp->driver->ver_res - 1;
+
+#if 0
 #ifdef SSTAR_GFX_ROTATE
 #if (SSTAR_GFX_ROTATE_ANGLE == 1) || (SSTAR_GFX_ROTATE_ANGLE == 3)
     if(data->point.x >= drv->disp->driver->ver_res)
@@ -249,6 +256,7 @@ void evdev_read(lv_indev_drv_t * drv, lv_indev_data_t * data)
     if(data->point.y >= drv->disp->driver->ver_res)
       data->point.y = drv->disp->driver->ver_res - 1;
 #endif
+#endif /* 0 */
 
     return ;
 }
