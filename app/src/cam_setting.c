@@ -7,6 +7,8 @@
 #include "pthread.h"
 #include "custom.h"
 #include <signal.h>
+#include "cam_video.h"
+
 
 void fill_cam_setting(lv_ui_context *ui_context, json_t *root) {
     if (json_is_array(root)) {
@@ -34,56 +36,65 @@ void fill_cam_setting(lv_ui_context *ui_context, json_t *root) {
     }
 }
 
-static void update_canvas_task(lv_timer_t *timer) {
-    lv_ui_context *ui_context = (lv_ui_context *)timer->user_data;
-    const char *image_data = ui_context->image_data;
-    size_t image_size = ui_context->image_size;
+//static void update_canvas_task(lv_timer_t *timer) {
+//    lv_ui_context *ui_context = (lv_ui_context *)timer->user_data;
+//    const char *image_data = ui_context->image_data;
+//    size_t image_size = ui_context->image_size;
+//
+//    if (image_data && image_size > 0) {
+////        lv_log("%llu\n", image_size);
+////        lv_draw_img_dsc_t img_dst;
+////        img_dst.opa = LV_OPA_100;
+//        lv_canvas_set_buffer(ui_context->ui->screen_1_canvas_1, (void *)ui_context->image_data, 640, 480, LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED);
+////        lv_canvas_draw_img(ui_context->ui->screen_1_canvas_1, 0, 0, image_data, &img_dst);
+//        lv_img_set_src(ui_context->ui->screen_1_img_1, image_data);
+//    }
+//}
 
-    if (image_data && image_size > 0) {
-//        lv_log("%llu\n", image_size);
-//        lv_draw_img_dsc_t img_dst;
-//        img_dst.opa = LV_OPA_100;
-        lv_canvas_set_buffer(ui_context->ui->screen_1_canvas_1, (void *)ui_context->image_data, 640, 480, LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED);
-//        lv_canvas_draw_img(ui_context->ui->screen_1_canvas_1, 0, 0, image_data, &img_dst);
-        lv_img_set_src(ui_context->ui->screen_1_img_1, image_data);
-    }
-}
-
-void receive_and_display_image(void *arg) {
-    redisReply *reply;
-    lv_ui_context *ui_context = (lv_ui_context *)arg;
-    redisContext *redis_ctx = init_redis_context();
+//void receive_and_display_image(void *arg) {
+//    redisReply *reply;
+//    lv_ui_context *ui_context = (lv_ui_context *)arg;
+//    redisContext *redis_ctx = init_redis_context();
+////    ui_context->image_data = lv_mem_alloc(640 * 480 * 4);
+//    if (NULL == redis_ctx) {
+//        lv_log("receive_and_display_image redis_ctx is null\n");
+//        return;
+//    }
 //    ui_context->image_data = lv_mem_alloc(640 * 480 * 4);
-    if (NULL == redis_ctx) {
-        lv_log("receive_and_display_image redis_ctx is null\n");
-        return;
-    }
-    ui_context->image_data = lv_mem_alloc(640 * 480 * 4);
-    subscribe_redis(redis_ctx, CAM_DATA_FETCH_CHANNEL);
-    lv_log("receive_and_display_image thread begin");
-
-//    lv_canvas_set_buffer(ui_context->ui->screen_1_canvas_1, (void *)ui_context->image_data, 640, 480, LV_IMG_CF_TRUE_COLOR);
-    while (ui_context->image_run) {
-        if (REDIS_OK == redisGetReply(redis_ctx, (void **)&reply)) {
-            lv_log("%llu, type=%d, elements=%d\n", pthread_self(), reply->type, reply->elements);
-            if ((reply->type == REDIS_REPLY_ARRAY) && (reply->elements == 3)) {
-                const char *image_data = reply->element[2]->str;
-                size_t image_size = reply->element[2]->len;
-//                lv_log("image_size=%d\n", image_size);
-//                memset(ui_context->image_data, 0, image_size);
-                lv_memcpy(ui_context->image_data, image_data, image_size);
-                // 将图像数据存储到上下文中
-                ui_context->image_size = image_size;
-
-                // 提交任务到主线程
-                lv_timer_t *timer = lv_timer_create(update_canvas_task, 10, ui_context);
-                lv_timer_set_repeat_count(timer, 1); // 只执行一次
-            }
-        }
-    }
-    lv_mem_free(ui_context->image_data);
-    unsubscribe_redis(redis_ctx, CAM_DATA_FETCH_CHANNEL);
-}
+////    subscribe_redis(redis_ctx, CAM_DATA_FETCH_CHANNEL);
+//    lv_log("receive_and_display_image thread begin");
+//
+////    lv_canvas_set_buffer(ui_context->ui->screen_1_canvas_1, (void *)ui_context->image_data, 640, 480, LV_IMG_CF_TRUE_COLOR);
+//    while (ui_context->image_run) {
+////        IplImage* frame = cvQueryFrame(capture);
+////
+////        if (!frame) {
+////            fprintf(stderr, "Error: 无法获取帧\n");
+////            break;
+////        }
+////        ui_context->image_size = frame->imageSize;
+////        lv_memcpy(ui_context->image_data, frame->imageData, frame->imageSize);
+//        lv_timer_t *timer = lv_timer_create(update_canvas_task, 10, ui_context);
+//        lv_timer_set_repeat_count(timer, 1); // 只执行一次
+//
+////        if (REDIS_OK == redisGetReply(redis_ctx, (void **)&reply)) {
+////            lv_log("%llu, type=%d, elements=%d\n", pthread_self(), reply->type, reply->elements);
+////            if ((reply->type == REDIS_REPLY_ARRAY) && (reply->elements == 3)) {
+////                const char *image_data = reply->element[2]->str;
+////                size_t image_size = reply->element[2]->len;
+////                lv_memcpy(ui_context->image_data, image_data, image_size);
+////                // 将图像数据存储到上下文中
+////                ui_context->image_size = image_size;
+////                // 提交任务到主线程
+////                lv_timer_t *timer = lv_timer_create(update_canvas_task, 10, ui_context);
+////                lv_timer_set_repeat_count(timer, 1); // 只执行一次
+////            }
+////        }
+//    }
+//    lv_mem_free(ui_context->image_data);
+////    cvReleaseCapture(&capture)
+////    unsubscribe_redis(redis_ctx, CAM_DATA_FETCH_CHANNEL);
+//}
 
 void show_cam_video_thread(lv_ui_context *ui_context, pthread_t *tid) {
     ui_context->image_run = 1;
