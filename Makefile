@@ -3,7 +3,8 @@
 #
 #CC := gcc
 #CC := aarch64-linux-gnu-gcc
-CC := arm-linux-gnueabihf-gcc
+CC := arm-none-linux-gnueabihf-gcc
+CXX := arm-none-linux-gnueabihf-g++
 LVGL_DIR ?= .
 LVGL_DIR_NAME ?= lvgl
 
@@ -63,10 +64,12 @@ BIN_DIR = $(BUILD_DIR)/bin/
 OBJEXT ?= .o
 AOBJS = $(addprefix $(OBJ_DIR),$(ASRCS:.S=$(OBJEXT)))
 COBJS = $(addprefix $(OBJ_DIR),$(CSRCS:.c=$(OBJEXT)))
+CXXOBJS = $(addprefix $(OBJ_DIR),$(CXXSRCS:.cpp=$(OBJEXT)))
 DEPS = $(addprefix $(OBJ_DIR),$(CSRCS:.c=.d))
+DEPS += $(addprefix $(OBJ_DIR),$(CXXSRCS:.cpp=.d))
 
 SRCS = $(ASRCS) $(CSRCS)
-OBJS = $(AOBJS) $(COBJS)
+OBJS = $(AOBJS) $(CXXOBJS) $(COBJS)
 
 .PHONY: all env clean default
 all: env default
@@ -88,9 +91,14 @@ $(OBJ_DIR)%.o: %.c
 	@mkdir -p $(OBJ_DIR)$(dir $<)
 	@$(CC)  $(CFLAGS) -MMD -c $< -o $@
 
+$(OBJ_DIR)%.o: %.cpp
+	@echo "Compiling $<"
+	@mkdir -p $(OBJ_DIR)$(dir $<)
+	@$(CXX)  $(CXXFLAGS) -MMD -c $< -o $@
+
 default: $(OBJS)
 	@echo "Linking $(BIN)"
-	@$(CC) -o $(BIN_DIR)$(BIN) $(OBJS) $(LDFLAGS)
+	@$(CXX) -o $(BIN_DIR)$(BIN) $(OBJS) $(LDFLAGS)
 
 clean:
 	rm build -r
